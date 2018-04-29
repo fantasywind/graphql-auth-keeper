@@ -1,4 +1,4 @@
-const jwtDecode = require('jwt-decode');
+const jwt = require('jsonwebtoken');
 
 function executeOnFailed(onFailed) {
   if (onFailed instanceof Error) {
@@ -27,14 +27,51 @@ function checkShouldHavePermission(permissionCode, actionCodes = [], orMode = fa
 const FLAG = Symbol('graphqlAuthKeeper');
 
 class GraphQLAuthKeeper {
-  constructor(token, syncFn) {
+  constructor({
+    syncFn,
+    secret,
+  }) {
     this.syncFn = syncFn;
-    this.token = token;
-    this.payload = jwtDecode(token);
+    this.secret = secret;
   }
 
   getPermissions() {
     return this.payload.permissions;
+  }
+
+  verifyToken(token) {
+    return new Promise((resolve, reject) => {
+      jwt.verify(token, this.secret, (err, paylod) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(payload);
+        }
+      })
+    });
+  }
+
+  middleware(options = {}) {
+    return async (ctx) => {
+      let optionsObj = typeof options === 'function' ? await options() : options;
+
+      const token = ctx.request.header.authorization ?
+        ctx.request.header.authorization.replace(/^Bearer\s/, '') : ctx.query.access_token;
+
+      try {
+        const payload = await this.verifyToken(token);
+
+        return {
+          ...optionsObj,
+          context: {
+            ...(optionsObj.context || {}),
+            [FLAG]: payload,
+          },
+        };
+      } catch (ex) {
+        return optionsObj;
+      }
+    };
   }
 
   async sync() {
@@ -80,17 +117,9 @@ function authKeeper({
   };
 }
 
-function graphqlAuthKeeper(ctx, syncFn) {
-  const token = ctx.header.authorization ?
-    ctx.header.authorization.replace(/^Bearer\s/, '') : ctx.query.access_token;
-
-  return token ? new GraphQLAuthKeeper(token, syncFn) : null;
-};
-
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-module.exports.default = graphqlAuthKeeper;
+module.exports.default = GraphQLAuthKeeper;
 module.exports.authKeeper = authKeeper;
-module.exports.FLAG = FLAG;

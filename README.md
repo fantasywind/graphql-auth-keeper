@@ -14,27 +14,22 @@ import Koa from 'koa';
 import Router from 'koa-router';
 import koaBody from 'koa-bodyparser';
 import { graphqlKoa, graphiqlKoa } from 'apollo-server-koa';
-import graphqlAuthKeeper, {
-  authKeeper,
-  FLAG,
-} from 'graphql-auth-keeper';
-import { db } from './db.js';
+import GraphQLAuthKeeper, { authKeeper } from 'graphql-auth-keeper';
+import { db } from './db';
+import { memberType } from './memberType';
 
 const CREATE_MEMBER = {
   name: 'Create Member',
   code: 1,
 };
 
-const graphqlHandler = graphqlKoa(ctx => ({
-  schema,
-  context: {
-    [FLAG]: graphqlAuthKeeper(ctx, payload => db.models.Member.findOne({
-      where: {
-        id: payload.id,
-      },
-    })),
-  },
-});
+const meQuery = {
+  type: memberType,
+  resolve: authKeeper({
+    onFailed: new Error('Auth Failed'),
+    onlineData: true,
+  })(member => member),
+};
 
 const createMemberMutation = {
   type: GraphQLInt,
@@ -63,11 +58,35 @@ const createMemberMutation = {
   }),
 };
 
+const schema = new GraphQLSchema({
+  query: new GraphQLObjectType({
+    name: 'Query',
+    fields: {
+      me: meQuery,
+    },
+  }),
+  mutation: new GraphQLObjectType({
+    name: 'Mutation',
+    fields: {
+      createMember: createMemberMutation,
+    },
+  }),
+});
+
 const app = new Koa();
 const router = new Router();
+const authKeeper = new GraphQLAuthKeeper({
+  syncFn: payload => db.models.Member.findOne({
+    where: {
+      id: payload.id,
+    },
+  }),
+  sceret: 'JWT_SECRET',
+});
 
-router.post('/graphql', koaBody(), graphqlHandler);
-router.get('/graphql', graphqlHandler);
+router.post('/graphql', koaBody(), graphqlKoa(authKeeper.middleware({
+  schema,
+})));
 
 app.use(router.routes());
 app.use(router.allowedMethods());
@@ -75,11 +94,12 @@ app.use(router.allowedMethods());
 app.listen(3000);
 ```
 
-## Keeper API
-
-graphqlAuthKeeper(KoaContext, [SyncFunctionForOnlineDataMode])
-
 ## Keeper Options
+
+- secret(string)[required]: JWT Secret
+- syncFn(Function): Should return live data by payload info
+
+## Route Options
 
 - logined(boolean): Require valid JWT token or not
 - actions(Action | Array<Action>): Required actions

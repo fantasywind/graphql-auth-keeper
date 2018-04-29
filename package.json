@@ -1,6 +1,6 @@
 {
   "name": "graphql-auth-keeper",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Endpoint Auth Keeper for GraphQL Application",
   "main": "index.js",
   "scripts": {
@@ -24,6 +24,6 @@
   },
   "homepage": "https://github.com/fantasywind/graphql-auth-keeper#readme",
   "dependencies": {
-    "jwt-decode": "^2.2.0"
+    "jsonwebtoken": "^8.2.1"
   }
 }
