@@ -1,0 +1,29 @@
+{
+  "name": "graphql-auth-keeper",
+  "version": "0.1.0",
+  "description": "Endpoint Auth Keeper for GraphQL Application",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fantasywind/graphql-auth-keeper.git"
+  },
+  "keywords": [
+    "GraphQL",
+    "Koa",
+    "Express",
+    "ACL",
+    "Auth"
+  ],
+  "author": "Chia Yu Pai (Rytass)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fantasywind/graphql-auth-keeper/issues"
+  },
+  "homepage": "https://github.com/fantasywind/graphql-auth-keeper#readme",
+  "dependencies": {
+    "jwt-decode": "^2.2.0"
+  }
+}
