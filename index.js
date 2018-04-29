@@ -41,7 +41,7 @@ class GraphQLAuthKeeper {
 
   verifyToken(token) {
     return new Promise((resolve, reject) => {
-      jwt.verify(token, this.secret, (err, paylod) => {
+      jwt.verify(token, this.secret, (err, payload) => {
         if (err) {
           reject(err);
         } else {
@@ -59,13 +59,13 @@ class GraphQLAuthKeeper {
         ctx.request.header.authorization.replace(/^Bearer\s/, '') : ctx.query.access_token;
 
       try {
-        const payload = await this.verifyToken(token);
+        this.payload = await this.verifyToken(token);
 
         return {
           ...optionsObj,
           context: {
             ...(optionsObj.context || {}),
-            [FLAG]: payload,
+            [FLAG]: this,
           },
         };
       } catch (ex) {
@@ -113,7 +113,10 @@ function authKeeper({
       }
     }
 
-    return handler(root, args, context, ast);
+    return handler(root, args, {
+      ...context,
+      authPayload: keeper.payload,
+    }, ast);
   };
 }
 

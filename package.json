@@ -1,6 +1,6 @@
 {
   "name": "graphql-auth-keeper",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Endpoint Auth Keeper for GraphQL Application",
   "main": "index.js",
   "scripts": {
