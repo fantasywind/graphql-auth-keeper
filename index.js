@@ -55,7 +55,7 @@ function authKeeper({
     const keeper = context[FLAG];
 
     if ((logined || actions || onlineData) && !keeper) {
-      executeOnFailed(onFailed);
+      return executeOnFailed(onFailed);
     }
 
     if (onlineData) {
