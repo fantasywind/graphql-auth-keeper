@@ -66,6 +66,7 @@ class GraphQLAuthKeeper {
           context: {
             ...(optionsObj.context || {}),
             [FLAG]: this,
+            authPayload: this.payload,
           },
         };
       } catch (ex) {
