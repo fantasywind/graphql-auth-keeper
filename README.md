@@ -15,6 +15,7 @@ import Router from 'koa-router';
 import koaBody from 'koa-bodyparser';
 import { graphqlKoa, graphiqlKoa } from 'apollo-server-koa';
 import GraphQLAuthKeeper, { authKeeper } from 'graphql-auth-keeper';
+import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { db } from './db';
 import { memberType } from './memberType';
 
@@ -91,7 +92,19 @@ router.post('/graphql', koaBody(), graphqlKoa(authKeeper.middleware({
 app.use(router.routes());
 app.use(router.allowedMethods());
 
-app.listen(3000);
+const server = createServer(app.callback());
+
+SubscriptionServer.create({
+  schema,
+  subscribe,
+  execute,
+  onOperation: authKeeper.subscriptionOperationMiddleware(),
+}, {
+  server,
+  path: '/graphql',
+});
+
+server.listen(3000);
 ```
 
 ## Keeper Options

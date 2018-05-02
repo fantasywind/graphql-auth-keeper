@@ -75,6 +75,33 @@ class GraphQLAuthKeeper {
     };
   }
 
+  subscriptionOperationMiddleware(options = {}) {
+    return async (message, params) => {
+      let optionsObj = typeof options === 'function' ? await options() : options;
+
+      const token = message.payload.authorization.replace(/^Bearer\s/, '');
+
+      try {
+        this.payload = await this.verifyToken(token);
+
+        return {
+          ...params,
+          ...optionsObj,
+          context: {
+            ...(optionsObj.context || {}),
+            [FLAG]: this,
+            authPayload: this.payload,
+          },
+        };
+      } catch (ex) {
+        return {
+          ...params,
+          ...optionsObj,
+        };
+      }
+    };
+  }
+
   async sync() {
     if (this.syncFn) {
       this.payload = await this.syncFn(this.payload);
