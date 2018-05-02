@@ -76,10 +76,10 @@ class GraphQLAuthKeeper {
   }
 
   subscriptionOperationMiddleware(options = {}) {
-    return async (message, params) => {
+    return async (message, params, socket) => {
       let optionsObj = typeof options === 'function' ? await options() : options;
 
-      const token = message.payload.authorization.replace(/^Bearer\s/, '');
+      const token = (message.payload.authorization || socket.upgradeReq.headers.authorization || '').replace(/^Bearer\s/, '');
 
       try {
         this.payload = await this.verifyToken(token);
