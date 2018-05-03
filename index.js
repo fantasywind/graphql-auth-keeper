@@ -123,10 +123,6 @@ function authKeeper({
       return executeOnFailed(onFailed);
     }
 
-    if (onlineData) {
-      await keeper.sync();
-    }
-
     if (actions) {
       const willCheckedActions = (
         Array.isArray(actions) ? actions : [actions]
@@ -139,6 +135,10 @@ function authKeeper({
       )) {
         return executeOnFailed(onFailed);
       }
+    }
+
+    if (onlineData) {
+      await keeper.sync();
     }
 
     return handler(root, args, {
