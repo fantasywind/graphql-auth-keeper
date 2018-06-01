@@ -1,13 +1,5 @@
 const jwt = require('jsonwebtoken');
 
-function executeOnFailed(onFailed) {
-  if (onFailed instanceof Error) {
-    throw onFailed;
-  }
-
-  return typeof onFailed === 'function' ? onFailed() : onFailed;
-}
-
 function checkShouldHavePermission(permissionCode, actionCodes = [], orMode = false) {
   let shouldHaveActionCodes = actionCodes;
 
@@ -30,9 +22,11 @@ class GraphQLAuthKeeper {
   constructor({
     syncFn,
     secret,
+    onFailed,
   }) {
     this.syncFn = syncFn;
     this.secret = secret;
+    this.onFailed = onFailed;
   }
 
   getPermissions() {
@@ -107,6 +101,16 @@ class GraphQLAuthKeeper {
       this.payload = await this.syncFn(this.payload);
     }
   }
+
+  executeOnFailed(onFailed) {
+    const onFailedHandler = onFailed || this.onFailed;
+
+    if (onFailedHandler instanceof Error) {
+      throw onFailedHandler;
+    }
+
+    return typeof onFailedHandler === 'function' ? onFailedHandler() : onFailedHandler;
+  }
 }
 
 function authKeeper({
@@ -120,7 +124,7 @@ function authKeeper({
     const keeper = context[FLAG];
 
     if ((logined || actions || onlineData) && !keeper) {
-      return executeOnFailed(onFailed);
+      return keeper.executeOnFailed(onFailed);
     }
 
     if (actions) {
@@ -133,7 +137,7 @@ function authKeeper({
         willCheckedActions.map(action => action.code),
         !!orMode,
       )) {
-        return executeOnFailed(onFailed);
+        return keeper.executeOnFailed(onFailed);
       }
     }
 
