@@ -91,6 +91,10 @@ class GraphQLAuthKeeper {
         return {
           ...params,
           ...optionsObj,
+          context: {
+            ...(optionsObj.context || {}),
+            [FLAG]: this,
+          },
         };
       }
     };
@@ -123,7 +127,7 @@ function authKeeper({
   return handler => async (root, args, context, ast) => {
     const keeper = context[FLAG];
 
-    if ((logined || actions || onlineData) && !keeper) {
+    if ((logined || actions || onlineData) && !context.authPayload) {
       return keeper.executeOnFailed(onFailed);
     }
 
