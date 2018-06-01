@@ -64,7 +64,13 @@ class GraphQLAuthKeeper {
           },
         };
       } catch (ex) {
-        return optionsObj;
+        return {
+          ...optionsObj,
+          context: {
+            ...(optionsObj.context || {}),
+            [FLAG]: this,
+          },
+        };
       }
     };
   }
