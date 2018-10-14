@@ -33,9 +33,9 @@ class GraphQLAuthKeeper {
     return this.payload.permissions;
   }
 
-  verifyToken(token) {
+  verifyToken(token, ignoreExpiration = false) {
     return new Promise((resolve, reject) => {
-      jwt.verify(token, this.secret, (err, payload) => {
+      jwt.verify(token, this.secret, { ignoreExpiration }, (err, payload) => {
         if (err) {
           reject(err);
         } else {
@@ -82,7 +82,7 @@ class GraphQLAuthKeeper {
       const token = (message.payload.authorization || socket.upgradeReq.headers.authorization || '').replace(/^Bearer\s/, '');
 
       try {
-        this.payload = await this.verifyToken(token);
+        this.payload = await this.verifyToken(token, true);
 
         return {
           ...params,
