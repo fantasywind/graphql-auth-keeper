@@ -128,3 +128,8 @@ server.listen(3000);
 - onlineData(boolean): Should return online (syncd) data on resolve payload
 - onFailed(Error | Function | any): If Error given will throw it. Function will execute and return it result or return data directly.
 - orMode(boolean): The actions should be match all or partial.
+
+## Context added by authKeeper
+
+- jwtPayload(any): JWT payload from token
+- authPayload(any): JWT payload from token, if syncFn set, the result will overwrite this value

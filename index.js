@@ -186,14 +186,19 @@ function authKeeper({
       }
     }
 
-    if (onlineData) {
-      await keeper.sync();
-    }
-
-    return handler(root, args, {
+    const mixinContext = {
       ...context,
       authPayload: keeper.payload,
-    }, ast);
+      jwtPayload: keeper.payload,
+    };
+
+    if (onlineData) {
+      await keeper.sync();
+
+      mixinContext.authPayload = keeper.payload;
+    }
+
+    return handler(root, args, mixinContext, ast);
   };
 }
 
