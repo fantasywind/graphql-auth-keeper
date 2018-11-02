@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const debug = require('debug')('AuthKeeper:GraphQL');
 
 function checkShouldHavePermission(permissionCode, actionCodes = [], orMode = false) {
   let shouldHaveActionCodes = actionCodes;
@@ -26,7 +27,7 @@ class GraphQLAuthKeeper {
   }) {
     this.syncFn = syncFn;
     this.secret = secret;
-    this.onFailed = onFailed;
+    this.onFailed = onFailed || new Error('[GraphQLAuthKeeper] Auth Error');
   }
 
   getPermissions() {
@@ -43,6 +44,40 @@ class GraphQLAuthKeeper {
         }
       })
     });
+  }
+
+  apolloServerOptions(options = {}) {
+    return {
+      ...options,
+      context: async ({ req }) => {
+        const token = req.headers.authorization ?
+          req.headers.authorization.replace(/^Bearer\s/, '') : req.query.access_token;
+
+        if (!token) {
+          return {
+            ...(options.context || {}),
+            [FLAG]: this,
+          };
+        }
+
+        try {
+          this.payload = await this.verifyToken(token);
+
+          return {
+            ...(options.context || {}),
+            [FLAG]: this,
+            authPayload: this.payload,
+          };
+        } catch (ex) {
+          debug('Failed to parse JWT', ex);
+
+          return {
+            ...(options.context || {}),
+            [FLAG]: this,
+          };
+        }
+      },
+    };
   }
 
   middleware(options = {}) {

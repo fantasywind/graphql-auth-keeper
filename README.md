@@ -1,6 +1,15 @@
 # graphql-auth-keeper
 Endpoint Auth Keeper for GraphQL Application
 
+## Apollo Server Support
+```javascript
+const authKeeper = new GraphQLAuthKeeper({
+  secret: 'JWT_SECRET',
+});
+
+const server = new ApolloServer(authKeeper.apolloServerOptions({ schema }));
+```
+
 ## Example
 
 ### Member Action Check
@@ -82,7 +91,7 @@ const authKeeper = new GraphQLAuthKeeper({
       id: payload.id,
     },
   }),
-  sceret: 'JWT_SECRET',
+  secret: 'JWT_SECRET',
 });
 
 router.post('/graphql', koaBody(), graphqlKoa(authKeeper.middleware({
