@@ -80,6 +80,40 @@ class GraphQLAuthKeeper {
     };
   }
 
+  apolloServerKoaOptions(options = {}) {
+    return {
+      ...options,
+      context: async ({ ctx }) => {
+        const token = ctx.request.headers.authorization ?
+          ctx.request.headers.authorization.replace(/^Bearer\s/, '') : ctx.query.access_token;
+
+        if (!token) {
+          return {
+            ...(options.context || {}),
+            [FLAG]: this,
+          };
+        }
+
+        try {
+          this.payload = await this.verifyToken(token);
+
+          return {
+            ...(options.context || {}),
+            [FLAG]: this,
+            authPayload: this.payload,
+          };
+        } catch (ex) {
+          debug('Failed to parse JWT', ex);
+
+          return {
+            ...(options.context || {}),
+            [FLAG]: this,
+          };
+        }
+      },
+    };
+  }
+
   middleware(options = {}) {
     return async (ctx) => {
       let optionsObj = typeof options === 'function' ? await options() : options;
